@@ -1,0 +1,9 @@
+[package]
+authors = ["Emerentius <emerentius@arcor.de>"]
+name = "path-shadows"
+version = "0.1.0"
+
+license = "GPL-3.0"
+
+[dependencies]
+same-file = "1.0.0"
