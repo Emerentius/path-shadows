@@ -1,9 +1,10 @@
 [package]
 authors = ["Emerentius <emerentius@arcor.de>"]
+license = "GPL-3.0"
 name = "path-shadows"
 version = "0.1.0"
 
-license = "GPL-3.0"
-
 [dependencies]
 same-file = "1.0.0"
+structopt = "0.1.6"
+structopt-derive = "0.1.6"

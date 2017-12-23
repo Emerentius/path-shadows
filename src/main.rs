@@ -1,12 +1,70 @@
 extern crate same_file;
+extern crate structopt;
+#[macro_use] extern crate structopt_derive;
 
 use std::env;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::path;
 use same_file::is_same_file;
+use structopt::StructOpt;
+
+#[derive(Clone, Copy)]
+enum ShowSameFiles {
+    False,
+    True,
+    Only,
+}
+
+use ShowSameFiles::*;
+impl ShowSameFiles {
+    fn show_same(&self) -> bool {
+        match *self {
+            False => false,
+            True | Only => true,
+        }
+    }
+
+    fn show_diff(&self) -> bool {
+        match *self {
+            False | True => true,
+            Only => false,
+        }
+    }
+}
+
+impl std::str::FromStr for ShowSameFiles {
+    type Err = &'static str;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "false" => Ok(ShowSameFiles::False),
+            "true" => Ok(ShowSameFiles::True),
+            "only" => Ok(ShowSameFiles::Only),
+            _      => Err("invalid option"),
+        }
+    }
+
+}
+
+#[derive(StructOpt)]
+#[structopt(name = "path-shadows", about = "Find programs on PATH that are shadowed by programs in earlier directories")]
+struct Opt {
+    /// A flag, true if used in the command line.
+    #[structopt(
+        short = "s",
+        long = "show-same",
+        help = "Show paths that point to the same file",
+        // panics for some reason
+        //possible_values = &["true", "false", "only"],
+        possible_values_raw = r#"&["true", "false", "only"]"#,
+        default_value = "false",
+    )]
+    show_same_file: ShowSameFiles,
+}
 
 fn main() {
+    let options = Opt::from_args();
+
     let path = match env::var("PATH") {
         Ok(p) => p,
         Err(e) => {
@@ -45,8 +103,12 @@ fn main() {
                 Entry::Occupied(shadowing_path) => {
                     let shadowing_path: &path::PathBuf = shadowing_path.get();
                     match is_same_file(shadowing_path, file.path()) {
-                        Ok(false) => println!("{}:{}", file.path().display(), shadowing_path.display()),
-                        Ok(true)  => {},
+                        Ok(is_same) => {
+                            if (is_same && options.show_same_file.show_same())
+                            || (!is_same && options.show_same_file.show_diff()) {
+                                println!("{}:{}", file.path().display(), shadowing_path.display())
+                            }
+                        },
                         Err(e)    => eprintln!("Can not compare {} and {}: {}", file.path().display(), shadowing_path.display(), e),
                     }
                 }
