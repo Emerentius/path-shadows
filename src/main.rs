@@ -61,7 +61,13 @@ struct Opt {
     )]
     show_same_file: ShowSameFiles,
     #[structopt(name = "PATH", help = "Explicit PATH to search instead of the environment variable")]
-    path: Option<String>
+    path: Option<String>,
+    #[structopt(
+        short = "d",
+        long = "delimiter",
+        help = "Delimiter between shadowing and shadowed paths",
+        default_value = ":")]
+    delim: String,
 }
 
 fn main() {
@@ -110,7 +116,7 @@ fn main() {
                         Ok(is_same) => {
                             if (is_same && options.show_same_file.show_same())
                             || (!is_same && options.show_same_file.show_diff()) {
-                                println!("{}:{}", file.path().display(), shadowing_path.display())
+                                println!("{}{}{}", file.path().display(), options.delim, shadowing_path.display())
                             }
                         },
                         Err(e)    => eprintln!("Can not compare {} and {}: {}", file.path().display(), shadowing_path.display(), e),
