@@ -60,13 +60,17 @@ struct Opt {
         default_value = "false",
     )]
     show_same_file: ShowSameFiles,
+    #[structopt(name = "PATH", help = "Explicit PATH to search instead of the environment variable")]
+    path: Option<String>
 }
 
 fn main() {
     let options = Opt::from_args();
 
-    let path = match env::var("PATH") {
-        Ok(p) => p,
+    let path = match options.path.ok_or(())
+        .or_else(|_| env::var("PATH"))
+    {
+        Ok(path) => path,
         Err(e) => {
             eprintln!("Could not get PATH variable: {}", e);
             return
@@ -80,7 +84,7 @@ fn main() {
         let dir = match std::fs::read_dir(subpath) {
             Ok(reader) => reader,
             Err(e) => {
-                eprintln!("Can not directory {}: {}", subpath, e);
+                eprintln!("Can not read directory {}: {}", subpath, e);
                 continue
             }
         };
