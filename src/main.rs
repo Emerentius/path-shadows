@@ -56,7 +56,7 @@ struct Opt {
         help = "Show paths that point to the same file",
         // panics for some reason
         //possible_values = &["true", "false", "only"],
-        possible_values_raw = r#"&["true", "false", "only"]"#,
+        raw(possible_values = r#"&["true", "false", "only"]"#),
         default_value = "false",
     )]
     show_same_file: ShowSameFiles,
